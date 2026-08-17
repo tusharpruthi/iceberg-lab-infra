@@ -1,0 +1,32 @@
+flowchart TB
+    User["You<br/>(allowed_cidrs)"]
+
+    subgraph VPC["VPC — 10.0.0.0/16"]
+        subgraph SubnetA["Public Subnet A"]
+            EMR["EMR Cluster<br/>m5.xlarge — Flink + Trino<br/>toggled via emr_enabled"]
+        end
+        subgraph SubnetB["Public Subnet B"]
+            RDS[("RDS Postgres<br/>db.t4g.micro<br/>logical replication + pg_cron")]
+        end
+        SG_EMR["SG: emr<br/>(SSH/UI from allowed_cidrs only)"]
+        SG_RDS["SG: rds<br/>(5432 from emr SG only)"]
+    end
+
+    S3[("S3 Bucket<br/>Iceberg warehouse")]
+    GLUE["Glue Catalog Database<br/>(public)"]
+    IAM["IAM Role: emr-ec2-role<br/>scoped to S3 + Glue DB"]
+
+    User -->|SSH / Web UI| EMR
+    User -->|start.sh / stop.sh| RDS
+    User -->|start.sh / stop.sh| EMR
+    User -->|submit-job.sh<br/>password resolved locally, embedded in step| EMR
+
+    RDS -->|WAL changes, wal2json| EMR
+    EMR -->|writes Parquet + Iceberg metadata| S3
+    EMR -->|creates / updates tables| GLUE
+    EMR -->|Trino queries| GLUE
+    EMR -->|Trino reads data| S3
+
+    IAM -. grants access .-> EMR
+    SG_EMR -. protects .-> EMR
+    SG_RDS -. protects .-> RDS

@@ -1,0 +1,9 @@
+.terraform/
+tmp/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+*.pem
+crash.log
+crash.*.log
+plan_output.log

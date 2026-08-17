@@ -1,0 +1,25 @@
+# Copy this file to terraform.tfvars and fill in the values below.
+# terraform.tfvars is gitignored — never commit real values.
+
+region = "ap-south-1" # Mumbai
+
+# Just a placeholder list — scripts/start.sh and scripts/stop.sh fetch your *current* public IP,
+# merge it with static_allowed_cidrs below, and override this on every run automatically. Only
+# matters if you run `terraform plan`/`apply` directly, bypassing those scripts.
+allowed_cidrs = ["203.0.113.7/32"]
+
+# Static entries that should always have access, regardless of your own current IP — e.g. a
+# company VPN's NAT egress IP (see the Pritunl discussion in PLAN.md). Left empty, nothing static
+# is allowed. scripts/start.sh/stop.sh always merge this list in, so it survives every run.
+static_allowed_cidrs = ["157.20.14.25/32"]
+
+ec2_key_pair_name        = "iceberg-lab"    # must already exist: aws ec2 create-key-pair --key-name iceberg-lab ...
+postgres_master_password = "change-me-to-something-real" # never commit the real value
+
+# Optional: only needed if you manage multiple AWS accounts and want this repo to always target
+# a specific one, regardless of whatever's ambient in your shell. Leave as "" to just use
+# whatever AWS credentials/profile are already active.
+# aws_profile = "iceberg-lab"
+
+# Leave this false day-to-day; scripts/start.sh and scripts/stop.sh flip it for you.
+emr_enabled = false
